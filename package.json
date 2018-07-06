@@ -1,6 +1,6 @@
 {
     "name": "simple-steps",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "author": "ZSkycat",
     "repository": {
         "type": "git",
@@ -10,8 +10,7 @@
     "description": "A module that facilitates the display of step status and time in the terminal.",
     "keywords": [
         "simple",
-        "step",
-        "log"
+        "step"
     ],
     "main": "./dist/index.js",
     "files": [
