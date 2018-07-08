@@ -72,8 +72,6 @@ interface StepsOption {
 #### StepsOption.handleStepWhenStepsFail
 是否自动调用所有步骤的 `step.fail()`
 
-#### Instance Steps
-
 #### steps.last: Step
 获取最后一个步骤
 
