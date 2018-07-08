@@ -10,7 +10,10 @@
     "description": "A module that facilitates the display of step status and time in the terminal.",
     "keywords": [
         "simple",
-        "step"
+        "step",
+        "terminal",
+        "console",
+        "logger"
     ],
     "main": "./dist/index.js",
     "files": [
