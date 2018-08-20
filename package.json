@@ -2,7 +2,7 @@
     "name": "simple-steps",
     "version": "0.0.2",
     "author": "ZSkycat",
-    "description": "A module that facilitates the display of step status and time in the terminal.",
+    "description": "Help you output the step log in the terminal, and count the time spent.",
     "license": "MIT",
     "keywords": [
         "terminal",

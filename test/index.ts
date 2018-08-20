@@ -9,7 +9,7 @@ async function waitTime(time: number) {
 describe('', function() {
     this.timeout(60 * 1000);
 
-    it('output normal', async function() {
+    it('output succeed', async function() {
         let steps = new Steps({ stepTotal: 3 });
 
         try {
@@ -73,8 +73,9 @@ describe('', function() {
         await waitTime(1000);
         step3.succeed();
         await waitTime(1000);
-        step1.succeed();
         step2.succeed();
+        await waitTime(1000);
+        step1.succeed();
 
         steps.succeed();
     });

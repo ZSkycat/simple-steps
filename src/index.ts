@@ -3,7 +3,7 @@ import { parseDisplayLength } from './help';
 
 export interface StepsOptions {
     stream: NodeJS.WriteStream;
-    showDuration: boolean;
+    duration: boolean;
     splitLine: false | number;
     stepTotal: false | number;
     handleStepWhenStepsSucceed: boolean;
@@ -13,14 +13,14 @@ export interface StepsOptions {
 export class Steps {
     static defaultOptions: StepsOptions = {
         stream: process.stdout,
-        showDuration: true,
+        duration: true,
         splitLine: 128,
         stepTotal: false,
         handleStepWhenStepsSucceed: false,
         handleStepWhenStepsFail: true,
     };
 
-    option: StepsOptions;
+    options: StepsOptions;
     stream: NodeJS.WriteStream;
     isStarted = false;
     stepList: Step[] = [];
@@ -36,14 +36,14 @@ export class Steps {
         return (this.tickEnd - this.tickBegin) / 1000;
     }
 
-    get outputDuration() {
-        return this.option.showDuration ? ` in ${this.duration}s` : '';
+    private get formatDuration() {
+        return this.options.duration ? ` in ${this.duration}s` : '';
     }
 
     constructor(option?: Partial<StepsOptions>) {
-        if (option) this.option = Object.assign({}, Steps.defaultOptions, option);
-        else this.option = Object.assign({}, Steps.defaultOptions);
-        this.stream = this.option.stream;
+        if (option) this.options = Object.assign({}, Steps.defaultOptions, option);
+        else this.options = Object.assign({}, Steps.defaultOptions);
+        this.stream = this.options.stream;
     }
 
     step(title?: string) {
@@ -65,18 +65,18 @@ export class Steps {
 
     // format:
     // █succeed█ in 0.XXXs
-    succeed(handleStep: boolean = this.option.handleStepWhenStepsSucceed) {
+    succeed(handleStep: boolean = this.options.handleStepWhenStepsSucceed) {
         this.stop();
         if (handleStep) this.stepList.forEach(x => x.succeed());
-        this.stream.write(c.black.bgGreen(' succeed ') + c.green(this.outputDuration))
+        this.stream.write(c.black.bgGreen(' succeed ') + c.green(this.formatDuration) + '\n');
     }
 
     // format:
     // █fail█ in 0.XXXs
-    fail(handleStep: boolean = this.option.handleStepWhenStepsFail) {
+    fail(handleStep: boolean = this.options.handleStepWhenStepsFail) {
         this.stop();
         if (handleStep) this.stepList.forEach(x => x.fail());
-        this.stream.write(c.black.bgRed(' fail ') + c.red(this.outputDuration));
+        this.stream.write(c.black.bgRed(' fail ') + c.red(this.formatDuration) + '\n');
     }
 }
 
@@ -94,24 +94,20 @@ export class Step {
     }
 
     get duration() {
-        if (this.isStarted) this.tickEnd = Date.now();
+        if (this.state === 'start') this.tickEnd = Date.now();
         return (this.tickEnd - this.tickBegin) / 1000;
     }
 
-    get isStarted() {
-        return this.state === 'initial' ? false : true;
-    }
-
-    get isResult() {
+    get isComplete() {
         return this.state === 'succeed' || this.state === 'fail';
     }
 
-    get outputIndex() {
-        return `[${this.index}${this.context.option.stepTotal ? '/' + this.context.option.stepTotal : ''}]`;
+    private get formatIndex() {
+        return `[${this.index}${this.context.options.stepTotal ? '/' + this.context.options.stepTotal : ''}]`;
     }
 
-    get outputDuration() {
-        return this.context.option.showDuration ? c.gray(`(${this.duration}s)`) : '';
+    private get formatDuration() {
+        return this.context.options.duration ? c.gray(`(${this.duration}s)`) : '';
     }
 
     constructor(context: Steps, title: string = '') {
@@ -122,23 +118,23 @@ export class Step {
     // format:
     // [0/0] > {title} ----------
     start() {
-        if (this.isStarted === false) {
+        if (this.state === 'initial') {
             this.tickBegin = Date.now();
             this.state = 'start';
-            let msg = `${c.cyan(this.outputIndex)} ${c.cyan('>')} ${this.title}`;
-            if (this.context.option.splitLine) {
-                let columns = this.context.option.splitLine;
+            let msg = `${c.cyan(this.formatIndex)} ${c.cyan('>')} ${this.title}`;
+            if (this.context.options.splitLine) {
+                let columns = this.context.options.splitLine;
                 if (process.stdout.columns && process.stdout.columns < columns) columns = process.stdout.columns;
-                let length = columns - parseDisplayLength(msg) - 5;
-                msg += ' ' + c.gray('-'.repeat(length));
+                let length = columns - parseDisplayLength(msg) - 1;
+                if (length > 0) msg += ' ' + c.gray('-'.repeat(length));
             }
-            this.context.stream.write(msg);
+            this.context.stream.write(msg + '\n');
         }
         return this;
     }
 
     stop() {
-        if (this.isStarted) {
+        if (this.state === 'start') {
             this.state = 'stop';
             this.tickEnd = Date.now();
         }
@@ -147,18 +143,18 @@ export class Step {
     // format:
     // [0/0] √ {title} (0.XXXs)
     succeed(title: string = this.title) {
-        if (this.isResult) return;
+        if (this.isComplete) return;
         this.stop();
         this.state = 'succeed';
-        this.context.stream.write(`${c.green(this.outputIndex)} ${c.green('√')} ${title} ${this.outputDuration}`);
+        this.context.stream.write(`${c.green(this.formatIndex)} ${c.green('√')} ${title} ${this.formatDuration}` + '\n');
     }
 
     // format:
     // [0/0] × {title} (0.XXXs)
     fail(title: string = this.title) {
-        if (this.isResult) return;
+        if (this.isComplete) return;
         this.stop();
         this.state = 'fail';
-        this.context.stream.write(`${c.red(this.outputIndex)} ${c.red('×')} ${title} ${this.outputDuration}`);
+        this.context.stream.write(`${c.red(this.formatIndex)} ${c.red('×')} ${title} ${this.formatDuration}` + '\n');
     }
 }

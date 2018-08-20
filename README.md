@@ -1,29 +1,28 @@
 # simple-steps
-A module that facilitates the display of step status and time in the terminal.<br>
-一个方便在终端显示步骤状态和花费时间的模块。<br>
+[![version](https://img.shields.io/npm/v/simple-steps.svg)](https://www.npmjs.com/package/simple-steps)
+[![downloads](https://img.shields.io/npm/dt/simple-steps.svg)](https://www.npmjs.com/package/simple-steps)
+
+Help you output the step log in the terminal, and count the time spent.<br>
+帮助你在终端输出步骤日志，和计算所花费的时间。<br>
 
 ![preview](https://user-images.githubusercontent.com/20368649/42366169-20b5ab62-8133-11e8-8bf3-0c3aee8d1d09.gif)
 
-
-## Getting Started
-**Installation** ([npm](https://www.npmjs.com/package/simple-steps))
+## 起步
+**安装**
 ```
 npm install --save-dev simple-steps
-yarn add --dev simple-steps
 ```
 
-**Usage**
+**用法**
 ```javascript
-// import using CommonJS
+// 导入
 const Steps = require('simple-steps').Steps;
-// import using ESModule
-import { Steps } from 'simple-steps';
 
-// example
+// 示例
 let steps = new Steps({ stepTotal: 2 });
 try {
     steps.step('clear').start();
-    // doing
+    // 做些事情
     steps.last.succeed();
 } catch (e) {
     steps.fail();
@@ -31,7 +30,7 @@ try {
 }
 try {
     steps.step('build').start();
-    // doing
+    // 做些事情
     steps.last.succeed();
 } catch (e) {
     steps.fail();
@@ -40,73 +39,103 @@ try {
 steps.succeed();
 ```
 
-
 ## API
-### Class Steps
 ```typescript
-new Steps(option?: StepsOption)
-
-interface StepsOption {
-    showDuration: boolean;               // default: true
-    splitLine: false | number;           // default: 128
-    stepTotal: false | number;           // default: false
-    handleStepWhenStepsSucceed: boolean; // default: false
-    handleStepWhenStepsFail: boolean;    // default: true
-}
+const steps = new Steps(options?: StepsOptions);
+const step = steps.step('title').start();
 ```
+### StepsOptions
 
-#### StepsOption.showDuration
-是否启用显示花费时间
+实例化 Steps 的选项。
 
-#### StepsOption.splitLine
-是否启用显示分割线，并指定最大长度 (自动根据终端宽度计算)，例<br>
-`splitLine: 128`: 启用，分割线所在行最大 64 字符
+### StepsOptions.duration
+**类型:** `boolean`<br>
+**默认:** `true`<br>
+是否输出花费时间。
 
-#### StepsOption.stepTotal
-是否显示步骤总数，并指定总数，例<br>
-`stepTotal: 3`: 启用，步骤总数为 3
+### StepsOptions.splitLine
+**类型:** `false | number`<br>
+**默认:** `128`<br>
+是否输出分割线，并指定最大长度。
 
-#### StepsOption.handleStepWhenStepsSucceed
-是否自动调用所有步骤的 `step.succeed()`
+### StepsOptions.stepTotal
+**类型:** `false | number`<br>
+**默认:** `false`<br>
+是否输出步骤总数，并指定数量。
 
-#### StepsOption.handleStepWhenStepsFail
-是否自动调用所有步骤的 `step.fail()`
+### StepsOptions.handleStepWhenStepsSucceed
+**类型:** `boolean`<br>
+**默认:** `false`<br>
+当调用 `steps.succeed()` 时，是否自动调用所有步骤的 `step.succeed()`。
 
-#### steps.last: Step
-获取最后一个步骤
+### StepsOptions.handleStepWhenStepsFail
+**类型:** `boolean`<br>
+**默认:** `true`<br>
+当调用 `steps.fail()` 时，是否自动调用所有步骤的 `step.fail()`。
 
-#### steps.step(title?: string): Step
-`title`: 指定步骤的标题<br>
-创建步骤，返回 `Step` 实例
+---
 
-#### steps.stop()
-停止花费时间的计时
+### Class Steps
+主要入口。
 
-#### steps.succeed(handleStep?: boolean)
-`handleStep`: 和 `StepsOption.handleStepWhenStepsSucceed` 一样<br>
-输出成功消息
+### steps.isStarted: boolean
+获取是否正在计时。
 
-#### steps.fail(handleStep?: boolean)
-`handleStep`: 和 `StepsOption.handleStepWhenStepsFail` 一样<br>
-输出失败消息
+### steps.stepList: Step[]
+获取所有步骤。
+
+### steps.last: Step
+获取最后一个步骤。
+
+### steps.duration: number
+获取花费时间，单位 ms。
+
+### steps.step(title?: string): Step
+`title`: 设置步骤的标题<br>
+创建新的步骤实例。第一次调用时，`Steps` 将开始计时。
+
+### steps.stop()
+停止计时。
+
+### steps.succeed(handleStep?: boolean)
+`handleStep`: 参考 `StepsOptions.handleStepWhenStepsSucceed`<br>
+输出成功消息。
+
+### steps.fail(handleStep?: boolean)
+`handleStep`: 参考 `StepsOptions.handleStepWhenStepsFail`<br>
+输出失败消息。
+
+---
 
 ### Class Step
-需要使用 `steps.step` 创建
+使用 `steps.step()` 创建的步骤实例。
 
-#### step.start(): this
-输出开始信息
+### step.state: StepState
+`StepState`: `'initial' | 'start' | 'stop' | 'succeed' | 'fail'`<br>
+获取步骤的状态。
 
-#### step.stop()
-停止花费时间的计时
+### step.index: number
+获取步骤的索引。（创建顺序）
 
-#### step.succeed(title?: string)
-`title`: 指定输出的标题<br>
-输出成功信息
+### step.duration: number
+获取花费时间，单位 ms。
 
-#### step.fail(title?: string)
-`title`: 指定输出的标题<br>
-输出失败信息
+### step.isComplete: boolean
+获取步骤是否已经完成。
 
+### step.start(): this
+输出开始信息，并开始计时。
+
+### step.stop()
+停止计时。
+
+### step.succeed(title?: string)
+`title`: 设置输出的标题<br>
+输出成功信息。
+
+### step.fail(title?: string)
+`title`: 设置输出的标题<br>
+输出失败信息。
 
 ## License
-[MIT](https://github.com/ZSkycat/simple-steps/blob/master/LICENSE)
+[MIT](https://github.com/ZSkycat/simple-steps/blob/master/LICENSE.txt)
