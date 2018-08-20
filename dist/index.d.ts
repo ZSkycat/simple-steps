@@ -1,21 +1,24 @@
-export interface StepsOption {
-    showDuration: boolean;
+/// <reference types="node" />
+export interface StepsOptions {
+    stream: NodeJS.WriteStream;
+    duration: boolean;
     splitLine: false | number;
     stepTotal: false | number;
     handleStepWhenStepsSucceed: boolean;
     handleStepWhenStepsFail: boolean;
 }
 export declare class Steps {
-    static defaultOption: StepsOption;
-    option: StepsOption;
+    static defaultOptions: StepsOptions;
+    options: StepsOptions;
+    stream: NodeJS.WriteStream;
     isStarted: boolean;
     stepList: Step[];
     tickBegin: number;
     tickEnd: number;
     readonly last: Step;
     readonly duration: number;
-    private readonly durationOutput;
-    constructor(option?: Partial<StepsOption>);
+    private readonly formatDuration;
+    constructor(option?: Partial<StepsOptions>);
     step(title?: string): Step;
     stop(): void;
     succeed(handleStep?: boolean): void;
@@ -28,12 +31,11 @@ export declare class Step {
     state: StepState;
     tickBegin: number;
     tickEnd: number;
-    readonly ordinal: number;
+    readonly index: number;
     readonly duration: number;
-    readonly isStarted: boolean;
-    readonly isResult: boolean;
-    private readonly ordinalOutput;
-    private readonly durationOutput;
+    readonly isComplete: boolean;
+    private readonly formatIndex;
+    private readonly formatDuration;
     constructor(context: Steps, title?: string);
     start(): this;
     stop(): void;

@@ -9,9 +9,10 @@ class Steps {
         this.tickBegin = 0;
         this.tickEnd = 0;
         if (option)
-            this.option = Object.assign({}, Steps.defaultOption, option);
+            this.options = Object.assign({}, Steps.defaultOptions, option);
         else
-            this.option = Object.assign({}, Steps.defaultOption);
+            this.options = Object.assign({}, Steps.defaultOptions);
+        this.stream = this.options.stream;
     }
     get last() {
         return this.stepList[this.stepList.length - 1];
@@ -21,8 +22,8 @@ class Steps {
             this.tickEnd = Date.now();
         return (this.tickEnd - this.tickBegin) / 1000;
     }
-    get durationOutput() {
-        return this.option.showDuration ? ` in ${this.duration}s` : '';
+    get formatDuration() {
+        return this.options.duration ? ` in ${this.duration}s` : '';
     }
     step(title) {
         if (this.stepList.length === 0) {
@@ -39,23 +40,26 @@ class Steps {
             this.tickEnd = Date.now();
         }
     }
-    succeed(handleStep = this.option.handleStepWhenStepsSucceed) {
+    // format:
+    // █succeed█ in 0.XXXs
+    succeed(handleStep = this.options.handleStepWhenStepsSucceed) {
         this.stop();
         if (handleStep)
             this.stepList.forEach(x => x.succeed());
-        // _succeed_ in 0.XXXs
-        console.log(chalk_1.default.black.bgGreen(' succeed ') + chalk_1.default.green(this.durationOutput));
+        this.stream.write(chalk_1.default.black.bgGreen(' succeed ') + chalk_1.default.green(this.formatDuration) + '\n');
     }
-    fail(handleStep = this.option.handleStepWhenStepsFail) {
+    // format:
+    // █fail█ in 0.XXXs
+    fail(handleStep = this.options.handleStepWhenStepsFail) {
         this.stop();
         if (handleStep)
             this.stepList.forEach(x => x.fail());
-        // _fail_ in 0.XXXs
-        console.log(chalk_1.default.black.bgRed(' fail ') + chalk_1.default.red(this.durationOutput));
+        this.stream.write(chalk_1.default.black.bgRed(' fail ') + chalk_1.default.red(this.formatDuration) + '\n');
     }
 }
-Steps.defaultOption = {
-    showDuration: true,
+Steps.defaultOptions = {
+    stream: process.stdout,
+    duration: true,
     splitLine: 128,
     stepTotal: false,
     handleStepWhenStepsSucceed: false,
@@ -70,64 +74,65 @@ class Step {
         this.context = context;
         this.title = title;
     }
-    get ordinal() {
+    get index() {
         return this.context.stepList.findIndex(x => x === this) + 1;
     }
     get duration() {
-        if (this.isStarted)
+        if (this.state === 'start')
             this.tickEnd = Date.now();
         return (this.tickEnd - this.tickBegin) / 1000;
     }
-    get isStarted() {
-        return this.state === 'initial' ? false : true;
-    }
-    get isResult() {
+    get isComplete() {
         return this.state === 'succeed' || this.state === 'fail';
     }
-    get ordinalOutput() {
-        return `[${this.ordinal}${this.context.option.stepTotal ? '/' + this.context.option.stepTotal : ''}]`;
+    get formatIndex() {
+        return `[${this.index}${this.context.options.stepTotal ? '/' + this.context.options.stepTotal : ''}]`;
     }
-    get durationOutput() {
-        return this.context.option.showDuration ? chalk_1.default.gray(`(${this.duration}s)`) : '';
+    get formatDuration() {
+        return this.context.options.duration ? chalk_1.default.gray(`(${this.duration}s)`) : '';
     }
+    // format:
+    // [0/0] > {title} ----------
     start() {
-        if (this.isStarted === false) {
+        if (this.state === 'initial') {
             this.tickBegin = Date.now();
             this.state = 'start';
-            // [0/0] > {title} ----------
-            let msg = `${chalk_1.default.cyan(this.ordinalOutput)} ${chalk_1.default.cyan('>')} ${this.title}`;
-            if (this.context.option.splitLine) {
-                let columns = this.context.option.splitLine;
+            let msg = `${chalk_1.default.cyan(this.formatIndex)} ${chalk_1.default.cyan('>')} ${this.title}`;
+            if (this.context.options.splitLine) {
+                let columns = this.context.options.splitLine;
                 if (process.stdout.columns && process.stdout.columns < columns)
                     columns = process.stdout.columns;
-                let length = columns - help_1.parseDisplayLength(msg) - 5;
-                msg += ' ' + chalk_1.default.gray('-'.repeat(length));
+                let length = columns - help_1.parseDisplayLength(msg) - 1;
+                if (length > 0)
+                    msg += ' ' + chalk_1.default.gray('-'.repeat(length));
             }
-            console.log(msg);
+            this.context.stream.write(msg + '\n');
         }
         return this;
     }
     stop() {
-        if (this.isStarted) {
+        if (this.state === 'start') {
             this.state = 'stop';
             this.tickEnd = Date.now();
         }
     }
+    // format:
+    // [0/0] √ {title} (0.XXXs)
     succeed(title = this.title) {
-        if (this.isResult)
+        if (this.isComplete)
             return;
         this.stop();
         this.state = 'succeed';
-        // [0/0] √ {title} (0.XXXs)
-        console.log(`${chalk_1.default.green(this.ordinalOutput)} ${chalk_1.default.green('√')} ${title} ${this.durationOutput}`);
+        this.context.stream.write(`${chalk_1.default.green(this.formatIndex)} ${chalk_1.default.green('√')} ${title} ${this.formatDuration}` + '\n');
     }
+    // format:
+    // [0/0] × {title} (0.XXXs)
     fail(title = this.title) {
-        if (this.isResult)
+        if (this.isComplete)
             return;
         this.stop();
         this.state = 'fail';
-        // [0/0] × {title} (0.XXXs)
-        console.log(`${chalk_1.default.red(this.ordinalOutput)} ${chalk_1.default.red('×')} ${title} ${this.durationOutput}`);
+        this.context.stream.write(`${chalk_1.default.red(this.formatIndex)} ${chalk_1.default.red('×')} ${title} ${this.formatDuration}` + '\n');
     }
 }
 exports.Step = Step;
