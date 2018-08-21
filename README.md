@@ -48,6 +48,11 @@ const step = steps.step('title').start();
 
 实例化 Steps 的选项。
 
+### StepsOptions.stream
+**类型:** `NodeJS.WriteStream`<br>
+**默认:** `process.stdout`<br>
+设置输出使用的写入流。
+
 ### StepsOptions.duration
 **类型:** `boolean`<br>
 **默认:** `true`<br>
