@@ -15,10 +15,8 @@ npm install --save-dev simple-steps
 
 **用法**
 ```javascript
-// 导入
 const Steps = require('simple-steps').Steps;
 
-// 示例
 let steps = new Steps({ stepTotal: 2 });
 try {
     steps.step('clear').start();
@@ -103,11 +101,11 @@ const step = steps.step('title').start();
 停止计时。
 
 ### steps.succeed(handleStep?: boolean)
-`handleStep`: 参考 `StepsOptions.handleStepWhenStepsSucceed`<br>
+`handleStep`: [参考](#stepsoptionshandlestepwhenstepssucceed)<br>
 输出成功消息。
 
 ### steps.fail(handleStep?: boolean)
-`handleStep`: 参考 `StepsOptions.handleStepWhenStepsFail`<br>
+`handleStep`: [参考](#stepsoptionshandlestepwhenstepsfail)<br>
 输出失败消息。
 
 ---
