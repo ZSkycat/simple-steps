@@ -9,16 +9,16 @@ export interface StepsOptions {
 }
 export declare class Steps {
     static defaultOptions: StepsOptions;
+    constructor(option?: Partial<StepsOptions>);
     options: StepsOptions;
     stream: NodeJS.WriteStream;
     isStarted: boolean;
     stepList: Step[];
-    tickBegin: number;
-    tickEnd: number;
+    private _tickBegin;
+    private _tickEnd;
     readonly last: Step;
     readonly duration: number;
-    private readonly formatDuration;
-    constructor(option?: Partial<StepsOptions>);
+    private readonly _formatDuration;
     step(title?: string): Step;
     stop(): void;
     succeed(handleStep?: boolean): void;
@@ -26,17 +26,17 @@ export declare class Steps {
 }
 export declare type StepState = 'initial' | 'start' | 'stop' | 'succeed' | 'fail';
 export declare class Step {
+    constructor(context: Steps, title?: string);
     context: Steps;
     title: string;
     state: StepState;
-    tickBegin: number;
-    tickEnd: number;
+    private _tickBegin;
+    private _tickEnd;
     readonly index: number;
     readonly duration: number;
     readonly isComplete: boolean;
-    private readonly formatIndex;
-    private readonly formatDuration;
-    constructor(context: Steps, title?: string);
+    private readonly _formatIndex;
+    private readonly _formatDuration;
     start(): this;
     stop(): void;
     succeed(title?: string): void;

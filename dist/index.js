@@ -6,8 +6,8 @@ class Steps {
     constructor(option) {
         this.isStarted = false;
         this.stepList = [];
-        this.tickBegin = 0;
-        this.tickEnd = 0;
+        this._tickBegin = 0;
+        this._tickEnd = 0;
         if (option)
             this.options = Object.assign({}, Steps.defaultOptions, option);
         else
@@ -19,16 +19,16 @@ class Steps {
     }
     get duration() {
         if (this.isStarted)
-            this.tickEnd = Date.now();
-        return (this.tickEnd - this.tickBegin) / 1000;
+            this._tickEnd = Date.now();
+        return (this._tickEnd - this._tickBegin) / 1000;
     }
-    get formatDuration() {
+    get _formatDuration() {
         return this.options.duration ? ` in ${this.duration}s` : '';
     }
     step(title) {
         if (this.stepList.length === 0) {
             this.isStarted = true;
-            this.tickBegin = Date.now();
+            this._tickBegin = Date.now();
         }
         let step = new Step(this, title);
         this.stepList.push(step);
@@ -37,7 +37,7 @@ class Steps {
     stop() {
         if (this.isStarted) {
             this.isStarted = false;
-            this.tickEnd = Date.now();
+            this._tickEnd = Date.now();
         }
     }
     // format:
@@ -46,7 +46,7 @@ class Steps {
         this.stop();
         if (handleStep)
             this.stepList.forEach(x => x.succeed());
-        this.stream.write(chalk_1.default.black.bgGreen(' succeed ') + chalk_1.default.green(this.formatDuration) + '\n');
+        this.stream.write(chalk_1.default.black.bgGreen(' succeed ') + chalk_1.default.green(this._formatDuration) + '\n');
     }
     // format:
     // █fail█ in 0.XXXs
@@ -54,7 +54,7 @@ class Steps {
         this.stop();
         if (handleStep)
             this.stepList.forEach(x => x.fail());
-        this.stream.write(chalk_1.default.black.bgRed(' fail ') + chalk_1.default.red(this.formatDuration) + '\n');
+        this.stream.write(chalk_1.default.black.bgRed(' fail ') + chalk_1.default.red(this._formatDuration) + '\n');
     }
 }
 Steps.defaultOptions = {
@@ -69,8 +69,8 @@ exports.Steps = Steps;
 class Step {
     constructor(context, title = '') {
         this.state = 'initial';
-        this.tickBegin = 0;
-        this.tickEnd = 0;
+        this._tickBegin = 0;
+        this._tickEnd = 0;
         this.context = context;
         this.title = title;
     }
@@ -79,25 +79,25 @@ class Step {
     }
     get duration() {
         if (this.state === 'start')
-            this.tickEnd = Date.now();
-        return (this.tickEnd - this.tickBegin) / 1000;
+            this._tickEnd = Date.now();
+        return (this._tickEnd - this._tickBegin) / 1000;
     }
     get isComplete() {
         return this.state === 'succeed' || this.state === 'fail';
     }
-    get formatIndex() {
+    get _formatIndex() {
         return `[${this.index}${this.context.options.stepTotal ? '/' + this.context.options.stepTotal : ''}]`;
     }
-    get formatDuration() {
+    get _formatDuration() {
         return this.context.options.duration ? chalk_1.default.gray(`(${this.duration}s)`) : '';
     }
     // format:
     // [0/0] > {title} ----------
     start() {
         if (this.state === 'initial') {
-            this.tickBegin = Date.now();
+            this._tickBegin = Date.now();
             this.state = 'start';
-            let msg = `${chalk_1.default.cyan(this.formatIndex)} ${chalk_1.default.cyan('>')} ${this.title}`;
+            let msg = `${chalk_1.default.cyan(this._formatIndex)} ${chalk_1.default.cyan('>')} ${this.title}`;
             if (this.context.options.splitLine) {
                 let columns = this.context.options.splitLine;
                 if (process.stdout.columns && process.stdout.columns < columns)
@@ -113,7 +113,7 @@ class Step {
     stop() {
         if (this.state === 'start') {
             this.state = 'stop';
-            this.tickEnd = Date.now();
+            this._tickEnd = Date.now();
         }
     }
     // format:
@@ -123,7 +123,7 @@ class Step {
             return;
         this.stop();
         this.state = 'succeed';
-        this.context.stream.write(`${chalk_1.default.green(this.formatIndex)} ${chalk_1.default.green('√')} ${title} ${this.formatDuration}` + '\n');
+        this.context.stream.write(`${chalk_1.default.green(this._formatIndex)} ${chalk_1.default.green('√')} ${title} ${this._formatDuration}` + '\n');
     }
     // format:
     // [0/0] × {title} (0.XXXs)
@@ -132,7 +132,7 @@ class Step {
             return;
         this.stop();
         this.state = 'fail';
-        this.context.stream.write(`${chalk_1.default.red(this.formatIndex)} ${chalk_1.default.red('×')} ${title} ${this.formatDuration}` + '\n');
+        this.context.stream.write(`${chalk_1.default.red(this._formatIndex)} ${chalk_1.default.red('×')} ${title} ${this._formatDuration}` + '\n');
     }
 }
 exports.Step = Step;
